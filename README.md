@@ -109,28 +109,7 @@ echo "source ~/rplidarA_ros2/install/setup.bash" >> ~/.bashrc
 source ~/.bashrc
 ```
 
-### Step 6: Setup USB Permissions (udev rules)
-
-The RPLidar requires read/write permissions for the serial device.
-
-**Option 1: Temporary (requires sudo each time):**
-
-```bash
-sudo chmod 666 /dev/ttyUSB0
-```
-
-**Option 2: Permanent (recommended):**
-
-Create udev rules to automatically set permissions:
-
-```bash
-cd ~/rplidarA_ros2/src/rplidar_ros/scripts
-sudo bash create_udev_rules.sh
-```
-
-Then unplug and replug your RPLidar, or reboot your system.
-
-### Step 7: Verify Installation
+### Step 6: Verify Installation
 
 Check that the device is detected:
 
