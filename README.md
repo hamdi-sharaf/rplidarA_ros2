@@ -39,147 +39,211 @@ SLAMTEC LIDAR Tutorial: <https://github.com/robopeak/rplidar_ros/wiki>
 
 [Configuring your ROS 2 environment](https://docs.ros.org/en/foxy/Tutorials/Configuring-ROS2-Environment.html)
 
-## How to Create a ROS2 workspace
+## Installation Instructions
+
+### Prerequisites
+
+- ROS2 installed (Humble, Rolling, Galactic, or Foxy)
+- Colcon build tools
+- Git
+
+### Step 1: Create ROS2 Workspace
 
 [ROS2 Tutorials Creating a workspace](https://docs.ros.org/en/foxy/Tutorials/Workspace/Creating-A-Workspace.html)
 
-1. example, choose the directory name ros2_ws, for "development workspace" :
+Create a workspace directory (e.g., `rplidarA_ros2`):
 
-   ```bash
-   mkdir -p ~/ros2_ws/src
-   cd ~/ros2_ws/src
-   ```
+```bash
+mkdir -p ~/rplidarA_ros2/src
+cd ~/rplidarA_ros2/src
+```
 
-## Compile & Install rplidar_ros package
+### Step 2: Clone Repository
 
-1. Clone rplidar_ros package from github
+Clone this repository into your workspace:
 
-   Ensure you're still in the ros2_ws/src directory before you clone:
+```bash
+cd ~/rplidarA_ros2/src
+git clone https://github.com/hamdi-sharaf/rplidarA_ros2.git .
+```
 
-   ```bash
-   git clone -b ros2 https://github.com/Slamtec/rplidar_ros.git
-   ```
+Or if cloning the original SLAMTEC repository:
 
-2. Build rpidar_ros package
+```bash
+git clone -b ros2 https://github.com/Slamtec/rplidar_ros.git
+```
 
-   From the root of your workspace (ros2_ws), you can now build rplidar_ros package using the command:
+### Step 3: Install Dependencies
 
-   ```bash
-   cd ~/ros2_ws/
-   source /opt/ros/<rosdistro>/setup.bash
-   colcon build --symlink-install
-   ```
+Make sure all ROS2 dependencies are installed:
 
-   if you find output like "colcon:command not found",you need separate [install colcon](https://docs.ros.org/en/foxy/Tutorials/Colcon-Tutorial.html#install-colcon) build tools.
+```bash
+cd ~/rplidarA_ros2
+sudo apt update
+sudo apt install ros-<rosdistro>-tf2-ros ros-<rosdistro>-rviz2
+```
 
-3. Package environment setup
+Replace `<rosdistro>` with your ROS2 distribution (humble, rolling, galactic, or foxy).
 
-    ```bash
-    source ./install/setup.bash
-    ```
+If colcon is not installed:
 
-    Note: Add permanent workspace environment variables.
-    It's convenientif the ROS2 environment variables are automatically added to your bash session every time a new shell is launched:
+```bash
+sudo apt install python3-colcon-common-extensions
+```
 
-    ```bash
-    $echo "source <your_own_ros2_ws>/install/setup.bash" >> ~/.bashrc
-    $source ~/.bashrc
-    ```
+### Step 4: Build the Package
 
-4. Create udev rules for rplidar
+From the root of your workspace, build the package:
 
-   rplidar_ros running requires the read and write permissions of the serial device.
-   You can manually modify it with the following command:
+```bash
+cd ~/rplidarA_ros2
+source /opt/ros/<rosdistro>/setup.bash
+colcon build --symlink-install
+```
 
-   ```bash
-   sudo chmod 777 /dev/ttyUSB0
-   ```
+**Note:** The `--symlink-install` flag allows you to edit Python launch files without rebuilding.
 
-   But a better way is to create a udev rule:
+### Step 5: Source the Workspace
 
-   ```bash
-   cd src/rpldiar_ros/
-   source scripts/create_udev_rules.sh
-   ```
+After building, source the workspace:
+
+```bash
+source ~/rplidarA_ros2/install/setup.bash
+```
+
+**Tip:** Add this to your `.bashrc` for automatic sourcing in new terminals:
+
+```bash
+echo "source ~/rplidarA_ros2/install/setup.bash" >> ~/.bashrc
+source ~/.bashrc
+```
+
+### Step 6: Setup USB Permissions (udev rules)
+
+The RPLidar requires read/write permissions for the serial device.
+
+**Option 1: Temporary (requires sudo each time):**
+
+```bash
+sudo chmod 666 /dev/ttyUSB0
+```
+
+**Option 2: Permanent (recommended):**
+
+Create udev rules to automatically set permissions:
+
+```bash
+cd ~/rplidarA_ros2/src/rplidar_ros/scripts
+sudo bash create_udev_rules.sh
+```
+
+Then unplug and replug your RPLidar, or reboot your system.
+
+### Step 7: Verify Installation
+
+Check that the device is detected:
+
+```bash
+ls -l /dev/ttyUSB*
+# Should show: crw-rw---- 1 root dialout ... /dev/ttyUSB0
+```
+
+Check if your user is in the dialout group:
+
+```bash
+groups $USER
+# If 'dialout' is not listed, add yourself:
+sudo usermod -aG dialout $USER
+# Then log out and log back in
+```
 
 ## Run rplidar_ros
 
-### Run rplidar node and view in the rviz
+### Basic Usage (For example A2 lidar)
 
-The command for RPLIDAR A1 is :
-
-```bash
-ros2 launch rplidar_ros view_rplidar_a1_launch.py
-```
-
-The command for RPLIDAR A2M7 is :
+Run the RPLidar node without RViz visualization:
 
 ```bash
-ros2 launch rplidar_ros view_rplidar_a2m7_launch.py
+ros2 launch rplidar_ros rplidar_a2m8_launch.py 
+
 ```
 
-The command for RPLIDAR A2M8 is :
+### Run with Angle Limiting
+
+Launch with limited scan angle range (e.g., 120° to 240°):
 
 ```bash
-ros2 launch rplidar_ros view_rplidar_a2m8_launch.py
+ros2 launch rplidar_ros rplidar_limited_angle_launch.py angle_min_limit:=120.0 angle_max_limit:=240.0
 ```
 
-The command for RPLIDAR A2M12 is :
+### Run with TF Transform (Integration with Robot)
+
+Launch with TF transform from `base_link` to `laser_frame`:
 
 ```bash
-ros2 launch rplidar_ros view_rplidar_a2m12_launch.py
+ros2 launch rplidar_ros rplidar_limited_angle_launch.py 
+
 ```
 
-The command for RPLIDAR A3 is :
+## RVIZ Visualization
+
+### Basic Usage
 
 ```bash
-ros2 launch rplidar_ros view_rplidar_a3_launch.py
+ros2 launch rviz2 rviz2
 ```
+Select fix frame as laser_frame
 
-The command for RPLIDAR S1 is :
-
-```bash
-ros2 launch rplidar_ros view_rplidar_s1_launch.py
-```
-
-The command for RPLIDAR S1(TCP connection) is :
-
-```bash
-ros2 launch rplidar_ros view_rplidar_s1_tcp_launch.py
-```
-
-The command for RPLIDAR S2 is :
-
-```bash
-ros2 launch rplidar_ros view_rplidar_s2_launch.py
-```
-
-The command for RPLIDAR S2E is :
-
-```bash
-ros2 launch rplidar_ros view_rplidar_s2e_launch.py
-```
-
-The command for RPLIDAR S3 is :
-
-```bash
-ros2 launch rplidar_ros view_rplidar_s3_launch.py
-```
-
-The command for RPLIDAR T1 is :
-
-```bash
-ros2 launch rplidar_ros view_rplidar_t1_launch.py
-```
-
-The command for RPLIDAR C1 is :
-
-```bash
-ros2 launch rplidar_ros view_rplidar_c1_launch.py
-```
-
-Notice: different lidar use different serial_baudrate.
 
 ## RPLIDAR frame
 
 RPLIDAR frame must be broadcasted according to picture shown in rplidar-frame.png
+
+## Additional Features
+
+### Angle Limiting
+This package includes angle limiting features that allow you to restrict the scan range. By default, RPLidar scans the full 360-degree range (0-360°).
+
+See [ANGLE_LIMIT_README.md](rplidar_ros/ANGLE_LIMIT_README.md) for detailed information.
+
+### TF Transform Integration
+The `rplidar_limited_angle_launch.py` includes built-in TF transform publisher to connect the lidar to your robot's `base_link` frame.
+
+**Verify TF tree:**
+```bash
+ros2 run tf2_tools view_frames
+# Opens a PDF showing the TF tree
+
+ros2 run tf2_ros tf2_echo base_link laser_frame
+# Shows the transform between frames
+```
+
+### Configuration Options
+For detailed configuration options, see [CONFIGURATION.md](rplidar_ros/CONFIGURATION.md)
+
+## Topics Published
+
+- `/scan` (sensor_msgs/LaserScan) - Lidar scan data
+
+## Topics Subscribed
+
+None
+
+## Parameters
+
+- `serial_port` (string, default: "/dev/ttyUSB0") - Serial port name
+- `serial_baudrate` (int, default: 115200) - Serial baudrate
+- `frame_id` (string, default: "laser_frame") - Frame ID for scan data
+- `inverted` (bool, default: false) - Invert scan direction
+- `angle_compensate` (bool, default: true) - Enable angle compensation
+- `scan_mode` (string, default: "") - Scan mode (Standard, Express, Boost, Sensitivity, Stability)
+- `angle_min_limit` (float, default: 0.0) - Minimum angle limit in degrees
+- `angle_max_limit` (float, default: 360.0) - Maximum angle limit in degrees
+
+## Contributing
+
+Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
+
+## License
+
+See [LICENSE](rplidar_ros/LICENSE) file for details.
