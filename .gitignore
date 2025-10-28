@@ -1,0 +1,17 @@
+# VS Code workspace files
+.vscode/
+
+# ROS 2 COLCON build artifacts and logs
+log/
+build/
+install/
+
+# Compiled Python files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# OS-specific files
+.DS_Store
+Thumbs.db
