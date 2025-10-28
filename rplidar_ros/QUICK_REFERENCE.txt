@@ -1,0 +1,141 @@
+╔═══════════════════════════════════════════════════════════════════════════╗
+║                   RPLIDAR ANGLE LIMITING - QUICK REFERENCE                ║
+╚═══════════════════════════════════════════════════════════════════════════╝
+
+┌───────────────────────────────────────────────────────────────────────────┐
+│ YOUR CONFIGURATION: 120° to 240° (Front-facing sector)                     │
+└───────────────────────────────────────────────────────────────────────────┘
+
+╔═══════════════════════════════════════════════════════════════════════════╗
+║ QUICK START                                                                ║
+╚═══════════════════════════════════════════════════════════════════════════╝
+
+1. Build the package (if not already done):
+   cd /home/rosbee/ros2_ws
+   colcon build --packages-select rplidar_ros --symlink-install
+
+2. Source the workspace:
+   source /home/rosbee/ros2_ws/install/setup.bash
+
+3. Launch with angle limits (120° - 240°):
+   ros2 launch rplidar_ros rplidar_limited_angle_launch.py
+
+4. Or with custom angles:
+   ros2 launch rplidar_ros rplidar_limited_angle_launch.py \
+       angle_min_limit:=120.0 angle_max_limit:=240.0
+
+╔═══════════════════════════════════════════════════════════════════════════╗
+║ USING WITH EXISTING LAUNCH FILES                                          ║
+╚═══════════════════════════════════════════════════════════════════════════╝
+
+For RPLidar A1:
+   ros2 launch rplidar_ros rplidar_a1_launch.py \
+       --ros-args -p angle_min_limit:=120.0 -p angle_max_limit:=240.0
+
+For RPLidar A2:
+   ros2 launch rplidar_ros rplidar_a2m12_launch.py \
+       --ros-args -p angle_min_limit:=120.0 -p angle_max_limit:=240.0
+
+For RPLidar S1:
+   ros2 launch rplidar_ros rplidar_s1_launch.py \
+       --ros-args -p angle_min_limit:=120.0 -p angle_max_limit:=240.0
+
+╔═══════════════════════════════════════════════════════════════════════════╗
+║ TESTING & VERIFICATION                                                     ║
+╚═══════════════════════════════════════════════════════════════════════════╝
+
+Terminal 1 - Launch the lidar:
+   ros2 launch rplidar_ros rplidar_limited_angle_launch.py
+
+Terminal 2 - Check scan data:
+   ros2 topic echo /scan | grep -E "(angle_min|angle_max)"
+
+   OR use the test script:
+   python3 /home/rosbee/ros2_ws/src/rplidar_ros/scripts/check_angle_limits.py
+
+╔═══════════════════════════════════════════════════════════════════════════╗
+║ VISUALIZE IN RVIZ                                                          ║
+╚═══════════════════════════════════════════════════════════════════════════╝
+
+Terminal 1:
+   ros2 launch rplidar_ros rplidar_limited_angle_launch.py
+
+Terminal 2:
+   rviz2
+
+In RViz:
+   - Add > By topic > /scan > LaserScan
+   - Set Fixed Frame to "laser_frame"
+   - You should see only the 120° - 240° sector
+
+╔═══════════════════════════════════════════════════════════════════════════╗
+║ ANGLE CONVENTION                                                           ║
+╚═══════════════════════════════════════════════════════════════════════════╝
+
+                     90° (Left)
+                         │
+                         │
+        135°             │              45°
+             ╲           │           ╱
+               ╲         │         ╱
+                 ╲       │       ╱
+                   ╲     │     ╱
+    180° (Back) ────┼────●────┼──── 0° (Front)
+                   ╱     │     ╲
+                 ╱       │       ╲
+               ╱         │         ╲
+             ╱           │           ╲
+        225°             │              315°
+                         │
+                         │
+                    270° (Right)
+
+  Your setting (120° - 240°):
+    → Front sector, slightly off-center
+    → Covers most of the forward arc
+    → Excludes rear and extreme sides
+
+╔═══════════════════════════════════════════════════════════════════════════╗
+║ TROUBLESHOOTING                                                            ║
+╚═══════════════════════════════════════════════════════════════════════════╝
+
+No scan data received:
+   • Check if lidar is connected: ls /dev/ttyUSB*
+   • Verify serial port in launch file matches your device
+   • Try: sudo chmod 666 /dev/ttyUSB0
+
+Scan range incorrect:
+   • Check current parameters:
+     ros2 param get /rplidar_node angle_min_limit
+     ros2 param get /rplidar_node angle_max_limit
+   • Verify angle_compensate setting (try both true/false)
+
+Build errors:
+   • Clean build: rm -rf build/ install/ log/
+   • Rebuild: colcon build --packages-select rplidar_ros --symlink-install
+
+╔═══════════════════════════════════════════════════════════════════════════╗
+║ FILES CREATED/MODIFIED                                                     ║
+╚═══════════════════════════════════════════════════════════════════════════╝
+
+Modified:
+   • src/rplidar_node.cpp (angle filtering logic)
+
+Created:
+   • launch/rplidar_limited_angle_launch.py (launch file)
+   • ANGLE_LIMIT_README.md (detailed documentation)
+   • CHANGES_SUMMARY.md (technical summary)
+   • QUICK_REFERENCE.txt (this file)
+
+╔═══════════════════════════════════════════════════════════════════════════╗
+║ NEED MORE HELP?                                                            ║
+╚═══════════════════════════════════════════════════════════════════════════╝
+
+Read the detailed documentation:
+   • ANGLE_LIMIT_README.md - Complete usage guide
+   • CHANGES_SUMMARY.md - Technical implementation details
+
+Check ROS2 logs:
+   ros2 run rplidar_ros rplidar_node (look for "Angle limits set to..." message)
+
+═══════════════════════════════════════════════════════════════════════════════
