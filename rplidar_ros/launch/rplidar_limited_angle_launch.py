@@ -67,6 +67,60 @@ def generate_launch_description():
         description='Maximum angle limit in degrees (e.g., 240.0)'
     )
     
+    # TF transform arguments (base_link to laser_frame)
+    tf_x_arg = DeclareLaunchArgument(
+        'tf_x',
+        default_value='0.1',
+        description='X position of laser relative to base_link (meters)'
+    )
+    
+    tf_y_arg = DeclareLaunchArgument(
+        'tf_y',
+        default_value='0.0',
+        description='Y position of laser relative to base_link (meters)'
+    )
+    
+    tf_z_arg = DeclareLaunchArgument(
+        'tf_z',
+        default_value='0.2',
+        description='Z position of laser relative to base_link (meters)'
+    )
+    
+    tf_roll_arg = DeclareLaunchArgument(
+        'tf_roll',
+        default_value='0.0',
+        description='Roll rotation of laser relative to base_link (radians)'
+    )
+    
+    tf_pitch_arg = DeclareLaunchArgument(
+        'tf_pitch',
+        default_value='0.0',
+        description='Pitch rotation of laser relative to base_link (radians)'
+    )
+    
+    tf_yaw_arg = DeclareLaunchArgument(
+        'tf_yaw',
+        default_value='0.0',
+        description='Yaw rotation of laser relative to base_link (radians)'
+    )
+    
+    # Static TF broadcaster node
+    static_tf_node = Node(
+        package='tf2_ros',
+        executable='static_transform_publisher',
+        name='base_to_laser_tf',
+        arguments=[
+            '--x', LaunchConfiguration('tf_x'),
+            '--y', LaunchConfiguration('tf_y'),
+            '--z', LaunchConfiguration('tf_z'),
+            '--roll', LaunchConfiguration('tf_roll'),
+            '--pitch', LaunchConfiguration('tf_pitch'),
+            '--yaw', LaunchConfiguration('tf_yaw'),
+            '--frame-id', 'base_link',
+            '--child-frame-id', LaunchConfiguration('frame_id')
+        ]
+    )
+    
     # Create the node
     rplidar_node = Node(
         package='rplidar_ros',
@@ -96,5 +150,12 @@ def generate_launch_description():
         scan_mode_arg,
         angle_min_limit_arg,
         angle_max_limit_arg,
+        tf_x_arg,
+        tf_y_arg,
+        tf_z_arg,
+        tf_roll_arg,
+        tf_pitch_arg,
+        tf_yaw_arg,
+        static_tf_node,
         rplidar_node
     ])
